@@ -1,0 +1,141 @@
+import pygame, sys
+import numpy as np
+
+pygame.init()
+
+W = 600
+H = 600
+
+#making screen
+screen = pygame.display.set_mode((W,H))
+pygame.display.set_caption("TIC TAC TOE")
+aqua = (0,255,255)
+
+screen.fill(aqua)
+
+#board (observe in the terminal)
+Board_rows = 3
+Board_col = 3
+board = np.zeros((Board_rows,Board_col))
+
+#making lines
+LINE_W = 10
+LINE_C = (0,230,230)
+def draw_lines():
+    #horizontal
+    pygame.draw.line(screen,LINE_C,(0,200),(600,200),LINE_W)
+    pygame.draw.line(screen, LINE_C, (0, 400), (600, 400), LINE_W)
+    #vertical
+    pygame.draw.line(screen, LINE_C, (200, 0), (200, 600), LINE_W)
+    pygame.draw.line(screen, LINE_C, (400, 0), (400, 600), LINE_W)
+
+
+def mark_square(row,col,player):
+    board[row][col] = player
+
+def available_square(row,col):
+    return board[row][col] == 0
+
+def is_board_full():
+    for row in range(Board_rows):
+        for col in range (Board_col):
+            if board[row][col] == 0:
+                return False
+    return True
+
+#drawing circle
+Radius = 60
+Circle_W = 10
+#cross
+space = 55
+
+def draw_fig():
+    for row in range (Board_rows):
+        for col in range(Board_col):
+            if board[row][col] == 1:
+                pygame.draw.circle(screen, LINE_C, ( int(col*200+100) , int(row*200+100)), Radius, Circle_W )
+            if board[row][col] == 2:
+                pygame.draw.line(screen,LINE_C, (int(col*200+space) , int(row*200+200-space) ) , (col*200+200-space , row*200+space)  , LINE_W )
+                pygame.draw.line(screen, LINE_C, (int(col*200+space), int(row * 200+space)), (col * 200+200-space, row * 200+200-space),LINE_W)
+
+def check_win(player):
+    for col in range (Board_col):
+        if board[0][col] == player and board[1][col] == player and board[2][col] == player:
+            vertical_win_line(col,player)
+            return True
+    for row in range (Board_rows):
+        if board[row][0] == player and board[row][1] == player and board[row][2] == player:
+            horizontal_win_line(row,player)
+            return True
+    if board[0][0] == player and board[1][1] == player and board[2][2] == player:
+        dsc_diag_line(player)
+        return True
+    if board[0][2] == player and board[1][1] == player and board[2][0] == player:
+        asc_diag_line(player)
+        return True
+    return False
+
+def vertical_win_line(col,player):
+    posX = col*200+100
+    pygame.draw.line(screen,LINE_C, (posX,15), (posX,H-15),10 )
+
+def horizontal_win_line(row,player):
+    posY = row*200+100
+    pygame.draw.line(screen, LINE_C, (15, posY), (W-15, posY), 10)
+
+def asc_diag_line(player):
+    pygame.draw.line(screen,LINE_C, (15,H-15 ) , (W-15,15 ),10)
+
+
+def dsc_diag_line(player):
+    pygame.draw.line(screen, LINE_C, (15, 15), (W - 15, H-15),10)
+
+def restart():
+    screen.fill(aqua)
+    draw_lines()
+    player = 1
+    for row in range(Board_rows):
+        for col in range(Board_col):
+            board[row][col] = 0
+
+
+draw_lines()
+
+
+
+player = 1
+game_over = False
+
+#mainloop
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            sys.exit()
+
+        if event.type == pygame.MOUSEBUTTONDOWN and not game_over:
+            mouseX = event.pos[0] #x
+            mouseY = event.pos[1] #y
+            clicked_row = int(mouseY//200)
+            clicked_col = int(mouseX//200)
+
+            if available_square(clicked_row,clicked_col):
+                if player == 1:
+                    mark_square(clicked_row,clicked_col,1)
+                    if check_win(player):
+                        game_over =  True
+                    player = 2
+
+                else:
+                    mark_square(clicked_row, clicked_col, 2)
+                    if check_win(player):
+                        game_over = True
+                    player = 1
+
+                draw_fig()
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_0:
+                restart()
+
+                print(board)
+
+    pygame.display.update()
